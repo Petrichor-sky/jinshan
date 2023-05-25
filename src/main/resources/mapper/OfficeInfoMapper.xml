@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.OfficeInfoMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.haizhi.empower.entity.po.OfficeInfo" id="officeInfoMap">
+        <result property="id" column="id"/>
+        <result property="officeName" column="office_name"/>
+        <result property="officeCode" column="office_code"/>
+        <result property="superiorOfficeCode" column="superior_office_code"/>
+        <result property="isTemp" column="is_temp"/>
+        <result property="level" column="level"/>
+        <result property="administrative" column="administrative"/>
+        <result property="officeType" column="office_type"/>
+        <result property="suppression" column="suppression"/>
+        <result property="dr" column="dr"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!--officeType为0时officeValue是组织机构Code，为1时officeValue是派出所名称-->
+    <select id="selectOfficeByOfficeValue" resultType="com.haizhi.empower.entity.vo.OfficeVo">
+        select office_name as officeName,office_code as officeCode from office_info
+        where dr =0
+        <if test="officeType==0">
+            and office_code = #{officeValue}
+        </if>
+        <if test="officeType==1">
+            and office_name = #{officeValue}
+        </if>
+    </select>
+    <select id="selectOfficeFilterByName" resultMap="officeInfoMap">
+        select * from office_info
+        where dr=0
+        <if test="keyword!=''">
+            and office_name like concat('%',#{keyword},'%')
+        </if>
+    </select>
+    <select id="getUsersByOfficeCode" resultType="com.haizhi.empower.entity.vo.UserVo">
+        select ui.user_code as userCode,ui.`name` as userName,oi.office_code as officeCode,
+               oi.office_name as officeName
+        from user_info ui
+        RIGHT JOIN user_office uo on uo.user_code = ui.user_code and uo.dr =0
+        LEFT JOIN office_info oi ON uo.office_code = oi.office_code and oi.dr=0
+        where ui.dr =0 AND oi.office_code = #{officeCode}
+        <if test="keyword!=''">
+            and (ui.`name` like concat('%',#{keyword},'%') or oi.office_name like concat('%',#{keyword},'%'))
+        </if>
+    </select>
+    <select id="selectUserOfficeFilterByName" resultMap="officeInfoMap">
+        select * from office_info oi
+        left join user_office uo on uo.office_code = oi.office_code and uo.dr=0
+        left join user_info ui on uo.user_code = ui.user_code and ui.dr = 0
+        where oi.dr=0
+        <if test="keyword!=''">
+            and (ui.`name` like concat('%',#{keyword},'%') or oi.office_name like concat('%',#{keyword},'%'))
+        </if>
+    </select>
+    <select id="getOffices" resultType="com.haizhi.empower.entity.bo.CurrentUserShowBo$OfficeVo">
+        select oi.office_name as officeName,
+               oi.office_code as officeCode,
+               if(uo.is_default = 1, true, false) isDefault,
+               oi.org_code as orgCode,
+               oi.level as level
+               from user_office uo
+        right join office_info oi on oi.office_code=uo.office_code and oi.dr=0
+        where uo.dr=0 and uo.user_code = #{userId}
+    </select>
+    <select id="selectOfficesByOfficeValue" resultType="com.haizhi.empower.entity.vo.OfficeVo">
+        select office_name as officeName,office_code as officeCode from office_info
+        where dr =0
+        <if test="officeType==0">
+            and office_code like concat('%',#{officeValue},'%')
+        </if>
+        <if test="officeType==1">
+            and office_name like concat('%',#{officeValue},'%')
+        </if>
+    </select>
+</mapper>

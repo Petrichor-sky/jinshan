@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.JudgeTaskCoordinationMapper">
+
+    <resultMap id="judgeTaskCoordination" type="com.haizhi.empower.entity.po.JudgeTaskCoordination">
+        <result property="id" column="id" />
+        <result property="parentId" column="parent_id" />
+        <result property="content" column="content" />
+        <result property="createUser" column="create_user" />
+        <result property="createUnit" column="create_unit" />
+        <result property="replyName" column="reply_name" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <resultMap id="judgeTaskCoordinationVo" type="com.haizhi.empower.entity.vo.JudgeTaskCoordinationVo">
+        <result property="id" column="id" />
+        <result property="taskId" column="task_id" />
+        <result property="parentId" column="parent_id" />
+        <result property="content" column="content" />
+        <result property="createUser" column="create_user" />
+        <result property="createUnit" column="create_unit" />
+        <result property="replyName" column="reply_name" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <select id="selectByParentId" resultMap="judgeTaskCoordinationVo">
+        select * from t_judge_task_coordination where dr = 0 and parent_id = #{parentId} and task_id = #{taskId}
+        order by create_time
+    </select>
+
+    <!--获取任务的所有二级协同-->
+    <select id="selectTwoLevelCoordinationByIds" resultMap="judgeTaskCoordinationVo">
+        select `id`,
+               task_id,
+               parent_id,
+               content,
+               create_user,
+               create_unit,
+               reply_name,
+               create_time
+        from t_judge_task_coordination
+        where task_id = #{taskId}
+              and dr = 0
+              and parent_id in <foreach collection="parentIds" item="parentId" open="(" separator="," close=")">
+                                          #{parentId}
+                               </foreach>
+        order by create_time
+    </select>
+</mapper>

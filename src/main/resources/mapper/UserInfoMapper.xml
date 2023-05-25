@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.UserInfoMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.haizhi.empower.entity.po.UserInfo" id="userInfoMap">
+        <result property="id" column="id"/>
+        <result property="userCode" column="user_code"/>
+        <result property="userName" column="user_name"/>
+        <result property="idCard" column="id_card"/>
+        <result property="copCode" column="cop_code"/>
+        <result property="name" column="name"/>
+        <result property="sex" column="sex"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="mobile" column="mobile"/>
+        <result property="userPicture" column="user_picture"/>
+        <result property="backupMobile" column="backup_mobile"/>
+        <result property="isFrozen" column="is_frozen"/>
+        <result property="status" column="status"/>
+        <result property="dr" column="dr"/>
+        <result property="position" column="position"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!--userType为0时userValue为身份证号，为1时userValue为警号-->
+    <!--officeType为0时officeValue为组织机构Code，为1时officeValue为派出所名称-->
+    <select id="selectUserByUserValueAndOfficeValue" resultType="com.haizhi.empower.entity.vo.UserVo">
+        SELECT ui.name as userName,ui.user_code as userCode,oi.office_code as officeCode,oi.office_name as officeName
+        FROM user_info ui
+        RIGHT JOIN user_office uo on ui.user_code = uo.user_code and uo.dr = 0
+        RIGHT JOIN office_info oi on uo.office_code = oi.office_code and oi.dr = 0
+        where ui.dr = 0
+        <if test="userType==0">
+            and ui.id_card = #{userValue}
+        </if>
+        <if test="userType==1">
+            and ui.cop_code = #{userValue}
+        </if>
+        <if test="officeType==0">
+            and oi.office_code = #{officeValue}
+        </if>
+        <if test="officeType==1">
+            and oi.office_name = #{officeValue}
+        </if>
+    </select>
+
+
+    <select id="getUserByOffice" resultMap="userInfoMap">
+        select ui.* from user_info ui
+        RIGHT JOIN user_office uo ON uo.user_code=ui.user_code and uo.office_code = #{officeCode} and uo.dr =0
+        WHERE ui.dr =0
+        <if test="status!=-1">
+            and ui.status= #{status}
+        </if>
+        <if test="userName!=''">
+            and ui.user_name like concat('%',#{userName},'%')
+        </if>
+        <if test="name!=''">
+            and ui.name like concat('%',#{name},'%')
+        </if>
+        <if test="copCode!=''">
+            and ui.cop_code like concat('%',#{copCode},'%')
+        </if>
+        <if test="roleId!=-1">
+            and #{roleId} in (select ur.role_id from user_role ur where ur.dr =0 and ur.user_code = ui.user_code )
+        </if>
+        <if test="keyword!=''">
+            and (ui.user_name like concat('%',#{keyword},'%') or ui.name like concat('%',#{keyword},'%') or
+            ui.cop_code like concat('%',#{keyword},'%') or ui.id_card like concat('%',#{keyword},'%'))
+        </if>
+
+        order by ui.create_time desc
+    </select>
+    <select id="getUserByRole" resultMap="userInfoMap">
+        select ui.* from user_info ui
+        right join user_role ur on ui.user_code = ur.user_code and ur.role_id= #{roleId} and ur.dr=0
+        where ui.dr =0
+        <if test="keyword!=''">
+            and (ui.user_name like concat('%',#{keyword},'%') or ui.name like concat('%',#{keyword},'%') or
+            ui.cop_code like concat('%',#{keyword},'%') or ui.id_card like concat('%',#{keyword},'%'))
+        </if>
+        order by ui.create_time desc
+    </select>
+    <select id="getManageRoleUserByOfficeCode" resultMap="userInfoMap">
+        select *
+        FROM user_info ui
+                 RIGHT JOIN user_role ur ON ur.user_code = ui.user_code and ur.dr = 0
+                 RIGHT JOIN role r ON r.role_name = '单位管理员' AND r.dr = 0 AND r.id = ur.role_id
+                 RIGHT JOIN user_office uo ON uo.user_code = ui.user_code and uo.dr = 0 AND uo.office_code = #{officeCode}
+        WHERE ui.dr = 0
+    </select>
+
+    <select id="selectByUserName" resultMap="userInfoMap">
+        select * from user_info where user_name = #{userName} and dr = 0 and status = 0
+    </select>
+
+    <select id="selectByUserCode" resultMap="userInfoMap">
+        select * from user_info where user_code = #{userCode} and dr = 0 and status = 0
+    </select>
+
+    <select id="selectOneByCopCode" resultMap="userInfoMap">
+        select * from user_info where cop_code = #{copCode} and dr = 0 and status = 0
+    </select>
+
+    <select id="selectByCondition" resultMap="userInfoMap">
+        select cop_code, name from user_info where dr = 0 and (<![CDATA[cop_code != '']]> or <![CDATA[cop_code != null]]>)
+        <if test="userInfo.copCode != null and userInfo.name != null">
+            and (cop_code like concat('%', #{userInfo.copCode} , '%') or name like concat('%', #{userInfo.name} , '%'))
+        </if>
+    </select>
+</mapper>

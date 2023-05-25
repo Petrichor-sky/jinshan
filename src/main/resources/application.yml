@@ -1,0 +1,95 @@
+server:
+  servlet:
+    contextPath: /empower
+spring:
+  profiles:
+    active: test
+  application:
+    name: empower
+  main:
+    allow-bean-definition-overriding: true
+  #mysql数据库连接池配置
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    #   driver-class-name: com.mysql.cj.jdbc.Driver
+    filters: stat
+    maxActive: 20
+    initialSize: 1
+    maxWait: 60000
+    minIdle: 1
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxOpenPreparedStatements: 20
+    logSlowSql: false
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+
+redis:
+  host: ${info.common.middle_ip}
+  port: 16379
+  password: haizhi@123
+  maxActive: 10
+  maxIdle: 10
+  minIdle: 0
+  maxWait: 30000
+
+#minio配置
+minio:
+  #minio前端UI界面地址
+  endpoint: http://${info.common.middle_ip}:19000
+  #登录名
+  accessKey: haizhi
+  #密码
+  secretKey: haizhi@123
+  #资源匹配地址
+  accessAddressPrefix: ${info.common.protocol}://${info.common.server_ip}:18112/minio_res/
+  defaultContentType: application/octet-stream
+  defaultExpiredTime: 86400
+  #默认资源桶名
+  webAttachmentBucket: jinshan-power
+
+#mybatis基础配置
+mybatis:
+  basePackage: com.haizhi.empower.mapper
+  mapperLocations: classpath*:mapper/*.xml
+  configuration:
+    call-setters-on-nulls: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+#分页插件配置
+pagehelper:
+  helperDialect: mysql
+  reasonable: false
+  supportMethodsArguments: true
+  params: count=countSql
+
+#熔断机制配置
+#熔断的超时时间（ms）
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 30000
+          #线程隔离策略配置，官方推荐使用THREAD，即下游依赖的请求在一个单独的线程中隔离，这里为了解决feign转发时需要携带head信息所以讲策略设置为SEMAPHORE，即下游依赖请求在当前调用线程中执行
+          strategy: SEMAPHORE
+
+#日志级别配置
+logging:
+  level:
+    tk:
+      mybatis: DEBUG
+    com:
+      haizhi:
+        empower:
+          mapper: DEBUG
+
+

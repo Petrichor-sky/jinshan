@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.JudgeTaskMapper">
+
+    <resultMap id="judgeTask" type="com.haizhi.empower.entity.po.JudgeTask">
+        <result property="id" column="id" />
+        <result property="taskNo" column="task_no" />
+        <result property="taskName" column="task_name" />
+        <result property="taskType" column="task_type" />
+        <result property="taskDesciption" column="task_desciption" />
+        <result property="taskMind" column="task_mind" />
+        <result property="taskStatus" column="task_status" />
+        <result property="conclusion" column="conclusion" />
+        <result property="createUnit" column="create_unit" />
+        <result property="createUser" column="create_user" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <select id="selectByTaskNo" resultMap="judgeTask">
+        select * from t_judge_task
+        where dr = 0 and task_no like concat('%', #{taskNo}, '%')
+        order by task_no desc
+    </select>
+
+    <!--获取登录人创建的待办任务-->
+    <select id="selectCreatePendList" resultType="com.haizhi.empower.entity.po.JudgeTask">
+        select `id` as id,
+               task_name as taskName,
+               task_no as taskNo,
+               task_desciption as taskDesciption,
+               task_status as taskStatus,
+               create_user as createUser,
+               create_unit as createUnit,
+               create_time as createTime
+        from t_judge_task
+        where task_status = #{taskStatus}
+              and dr = 0
+              and create_user = #{userCode}
+    </select>
+
+    <!--获取登录人协作的待办任务-->
+    <select id="selectCollaboratorPendList" resultType="com.haizhi.empower.entity.po.JudgeTask">
+        select `id` as id,
+               task_name as taskName,
+               task_no as taskNo,
+               task_desciption as taskDesciption,
+               task_status as taskStatus,
+               create_user as createUser,
+               create_unit as createUnit,
+               create_time as createTime
+        from t_judge_task
+        where task_status = #{taskStatus}
+              and dr = 0
+              and `id` in <foreach collection="ids" item="id" open="(" separator="," close=")">
+                                     #{id}
+                          </foreach>
+    </select>
+
+    <!--获取登录人反馈消息(我创建的任务,别人反馈的)-->
+    <select id="selectFeedbackMessageList" resultType="com.haizhi.empower.entity.po.JudgeMessage">
+        select task_id as taskId,
+               message_content as messageContent,
+               message_type as messageType,
+               create_time as createTime
+        from t_judge_message
+        where task_id in (select `id`
+                          from t_judge_task
+                          where create_user = #{userCode})
+              and message_type = 2
+    </select>
+
+    <!--获取登录人协作消息(别人创建的任务,需要我协作)-->
+    <select id="selectCooperateMessageList" resultType="com.haizhi.empower.entity.po.JudgeMessage">
+        select task_id as taskId,
+               message_content as messageContent,
+               message_type as messageType,
+               create_time as createTime
+        from t_judge_message
+        where task_id in (select task_id
+                          from t_judge_task_collaborator
+                          where collaborator = #{userCode})
+              and message_type = 1
+    </select>
+
+    <!--获取当前登录人进行中的任务数-->
+    <select id="selectProgressTaskCount" resultType="java.lang.Integer">
+        select jt.`id`
+        from (select `id`,task_status,dr
+              from t_judge_task
+              where create_user = #{userCode}
+                    or id in (select task_id
+                              from t_judge_task_collaborator
+                              where collaborator = #{userCode})) jt
+        where task_status = 0
+              and dr = 0
+    </select>
+
+    <!--获取当前登录人已完成的任务数-->
+    <select id="selectFinishTaskCount" resultType="java.lang.Integer">
+        select jt.`id`
+        from (select `id`,task_status,dr
+              from t_judge_task
+              where create_user = #{userCode}
+                    or id in (select task_id
+                              from t_judge_task_collaborator
+                              where collaborator = #{userCode})) jt
+        where task_status = 1
+              and dr = 0
+    </select>
+
+    <!--获取当前登录人创建的任务数-->
+    <select id="selectMyCreateTaskCount" resultType="java.lang.Integer">
+        select `id`
+        from t_judge_task
+        where create_user = #{userCode}
+              and dr = 0
+    </select>
+
+    <!--获取当前登录人创建的任务-->
+    <select id="selectMyCreateTaskByCode" resultType="com.haizhi.empower.entity.po.JudgeTask">
+        select `id` as id,
+               task_name as taskName,
+               task_no as taskNo,
+               task_desciption as taskDesciption,
+               task_status as taskStatus,
+               create_user as createUser,
+               create_unit as createUnit,
+               create_time as createTime
+        from t_judge_task
+        where create_user = #{userCode}
+              and dr = 0
+    </select>
+
+    <!--
+        获取研判任务详情:
+        创建单位唯一标识,创建人唯一标识,创建时间,任务名称,任务描述,研判脑图,任务结论
+    -->
+    <select id="selectTaskBaseInfo" resultType="com.haizhi.empower.entity.dto.JudgeTaskDetailDto">
+        select id as id,
+               task_name as taskName,
+               task_no as taskNo,
+               task_status as taskStatus,
+               create_user as createCode,
+               create_unit as officeCode,
+               create_time as createTime,
+               task_desciption as taskDesciption,
+               task_mind as taskMind,
+               conclusion as taskConclusion
+        from t_judge_task
+        where id = #{taskId}
+          and dr = 0
+    </select>
+</mapper>

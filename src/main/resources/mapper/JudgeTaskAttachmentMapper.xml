@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.JudgeTaskAttachmentMapper">
+
+    <resultMap id="judgeTaskAttachment" type="com.haizhi.empower.entity.po.JudgeTaskAttachment">
+        <result property="id" column="id" />
+        <result property="tableId" column="table_id" />
+        <result property="attachmentId" column="attachment_id" />
+        <result property="tableName" column="table_name" />
+    </resultMap>
+
+
+    <insert id="insertList" useGeneratedKeys="true" keyProperty="id">
+        insert into t_judge_task_attachment (table_id, attachment_id, table_name) values
+        <foreach collection="judgeTaskAttachments" item="judgeTaskAttachment" separator=",">
+            (#{judgeTaskAttachment.tableId}, #{judgeTaskAttachment.attachmentId}, #{judgeTaskAttachment.tableName})
+        </foreach>
+    </insert>
+
+    <select id="selectByTableName" resultMap="judgeTaskAttachment">
+        select * from t_judge_task_attachment where dr = 0 and table_name = #{tableName} and table_id = #{tableId}
+    </select>
+
+    <select id="selectAttachmentIds" resultType="long">
+        select attachment_id from t_judge_task_attachment where dr = 0 and table_name = #{tableName} and table_id = #{tableId}
+    </select>
+
+    <update id="deleteByTableName">
+        update t_judge_task_attachment set dr = 1 and table_name = #{tableName} and table_id = #{tableId}
+    </update>
+</mapper>
+bo

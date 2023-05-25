@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.RoleMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.haizhi.empower.entity.po.Role" id="roleMap">
+        <result property="id" column="id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="description" column="description"/>
+        <result property="roleType" column="role_type"/>
+        <result property="status" column="status"/>
+        <result property="sysRole" column="sys_role"/>
+        <result property="level" column="level"/>
+        <result property="dr" column="dr"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <select id="selectRoleVosByUserCode" resultType="com.haizhi.empower.entity.vo.RoleVo">
+        select r.id as roleId, r.role_name as roleName,r.status as status
+        from role r
+                 inner join user_role ur on ur.role_id = r.id and ur.dr = 0 and ur.user_code = #{userCode}
+        WHERE r.dr = 0
+    </select>
+    <select id="getAllRoles" resultMap="roleMap">
+        select * from role where dr = 0
+        <if test="keyword!=''">
+            and role_name like concat('%',#{keyword},'%')
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,87 @@
+server:
+  port: 8180
+
+info:
+  common:
+    #服务端部署机器ip
+    server_ip: 39.106.114.130
+    server_port: 80
+    #中间件部署机器ip
+    middle_ip: 39.106.114.130
+    #middle_ip: 124.222.12.212
+    #访问协议http或https
+    protocol: http
+    address: ${info.common.protocol}://${info.common.server_ip}:${info.common.server_port}
+  #系统登录页
+  sysUrl:
+    loginPath: http://www.baidu.com
+
+mysql:
+  #内部数据库
+  db:
+    ip: 39.106.114.130
+    port: 3306
+    username: dba
+    password: dba1234!
+    database: jinshan_empower
+
+#是否添加登录校验
+webConfig:
+  isOpen: true
+
+#数据库配置
+spring:
+  datasource:
+    db:
+      url: jdbc:mysql://${mysql.db.ip}:${mysql.db.port}/${mysql.db.database}?useUnicode=true&useSSL=false&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=GMT%2B8
+      username: ${mysql.db.username}
+      password: ${mysql.db.password}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+  cache:
+    type: redis
+#创建登录账户初始密码
+login:
+  password: haizhi1234
+  role: 3
+swagger:
+  enable: true;
+  path: com.haizhi.empower.rest
+#sso
+joif:
+  uc:
+    useuc: true
+    securePath: /**
+    # whitePath: /ucs/**,/userInfo/logout
+    whitePath: /ucs/**,/userInfo/logout,/doc.html,/webjars/**,/swagger-resources/**,/v2/api-docs/**,/api/app/base
+    sysUrl: http://localhost:8081
+    #    sysUrl: 1.1.1.1:80
+    sysPreContext: /empower
+    # 重定向使用（外网ip）
+    ucUrl: http://hzbdp.haizhi.com
+    indexRouter: /
+
+domain: haizhi
+
+tokenName: empower:auth
+
+appTokenName: app:jinshan_empower
+#任务脑图key前缀
+mindName: empower:task:mind
+
+# 通过外部方式调用UC接口token
+ucenter:
+  roleIp: http://123.126.105.19
+  haizhiToken: 5739d56b605f04b911389380e8e64859
+#  haizhiToken: a77b9353703ce6ec5de83f1d2a7168d5
+
+#接警、案件、人员、车辆接口
+api:
+  police-situation-url: http://ip:port/get_dt_jjxx
+  police-situation-token: 111
+  case-url: http://ip:port/get_ajjbxx_dn
+  case-token: 111
+  person-url: http://ip:port/get_ryztk_bq
+  person-token: 111
+  car-url: http://ip:port/get_jdcjbxx
+  car-token: 111
+

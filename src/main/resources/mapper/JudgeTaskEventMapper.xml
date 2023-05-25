@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.JudgeTaskEventMapper">
+
+    <resultMap id="judgeTaskEvent" type="com.haizhi.empower.entity.po.JudgeTaskEvent">
+        <result property="id" column="id" />
+        <result property="taskId" column="task_id" />
+        <result property="eventId" column="event_id" />
+        <result property="eventType" column="event_type" />
+        <result property="createUser" column="create_user" />
+    </resultMap>
+
+    <insert id="insertList" useGeneratedKeys="true" keyProperty="id">
+        insert into t_judge_task_event (task_id, event_id, event_type, create_user) values
+        <foreach collection="judgeTaskEvents" item="judgeTaskEvent" separator=",">
+            (#{judgeTaskEvent.taskId}, #{judgeTaskEvent.eventId}, #{judgeTaskEvent.eventType}, #{judgeTaskEvent.createUser})
+        </foreach>
+    </insert>
+
+    <select id="selectByTaskId" resultMap="judgeTaskEvent">
+        select * from t_judge_task_event where dr = 0 and task_id = #{taskId}
+    </select>
+
+    <update id="deleteByTaskId">
+        update t_judge_task_event set dr = 1 and task_id = #{taskId}
+    </update>
+
+    <!--任务所有关联要素(事件)-->
+    <select id="selectEventByTaskId" resultType="com.haizhi.empower.entity.po.JudgeTaskEvent">
+        select event_id as eventId,
+               event_type as eventType
+        from t_judge_task_event
+        where task_id = #{taskId}
+              and dr = 0
+    </select>
+</mapper>

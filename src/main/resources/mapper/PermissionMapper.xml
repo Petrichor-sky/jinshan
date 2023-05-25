@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.haizhi.empower.mapper.PermissionMapper">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.haizhi.empower.entity.po.Permission" id="permissionMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="code" column="code"/>
+        <result property="level" column="level"/>
+        <result property="resType" column="res_type"/>
+        <result property="superiorCode" column="superior_code"/>
+        <result property="routeType" column="route_type"/>
+        <result property="resRoute" column="res_route"/>
+        <result property="linkType" column="link_type"/>
+        <result property="resDesc" column="res_desc"/>
+        <result property="itemOrder" column="item_order"/>
+        <result property="status" column="status"/>
+        <result property="dr" column="dr"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="builtIn" column="built_in"/>
+        <result property="icon" column="icon"/>
+    </resultMap>
+
+    <select id="getList" resultMap="permissionMap">
+        select * from permission
+        where dr =0
+        <if test="status!= -1">
+            and status = #{status}
+        </if>
+        <if test="keyword!=''">
+            and name like concat('%',#{keyword},'%')
+        </if>
+        order by item_order
+    </select>
+    <select id="queryLastItemOrder" resultType="java.lang.Integer">
+        select MAX(item_order)
+        from permission
+        where dr = 0
+        <if test="superiorCode != null and superiorCode!=''">
+            and superior_code = #{superiorCode}
+        </if>
+    </select>
+    <select id="getRolesPermissions" resultMap="permissionMap"
+            parameterType="java.util.List">
+        select * from permission p
+        right join role_permission rp on rp.permission_id = p.id and rp.dr =0
+        where p.dr =0 and rp.role_id in
+        <foreach collection="roleIds" item="roleIds"  open="(" separator="," close=")">
+            #{roleIds}
+        </foreach>
+        <if test="sysCode != null and sysCode != ''">
+            and p.sys_code = #{sysCode}
+        </if>
+        group by p.id
+        order by p.item_order asc
+
+    </select>
+
+</mapper>
